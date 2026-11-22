@@ -1,0 +1,280 @@
+/* LINGO MATE - Complete Standalone Single-File Web Application */
+/* HTML, CSS, AND JAVASCRIPT WITH EMBEDDED INITIAL DATA */
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lingo Mate - Interactive Language Learning Arcade</title>
+    <style>
+        :root {
+            --bg-color: #0d0f18;
+            --card-bg: #1a1d2e;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
+            --accent-pink: #ec4899;
+            --accent-yellow: #f59e0b;
+            --text-light: #f3f4f6;
+            --text-dim: #9ca3af;
+            --border-color: #2e344e;
+        }
+
+        /* Language Theme Palettes */
+        .theme-fr { --theme-main: #2563eb; --theme-sub: #1d4ed8; --theme-bg: #172554; }
+        .theme-de { --theme-main: #059669; --theme-sub: #047857; --theme-bg: #064e3b; }
+        .theme-ja { --theme-main: #7c3aed; --theme-sub: #6d28d9; --theme-bg: #3b0764; }
+        .theme-ko { --theme-main: #db2777; --theme-sub: #be185d; --theme-bg: #831843; }
+        .theme-zh { --theme-main: #d97706; --theme-sub: #b45309; --theme-bg: #78350f; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-light); min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* Navigation Bar */
+        header { background: #121522; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); }
+        .logo { font-size: 1.6rem; font-weight: 800; background: linear-gradient(45deg, #3b82f6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-links { display: flex; gap: 1rem; }
+        .nav-btn { background: var(--card-bg); color: var(--text-light); border: 1px solid var(--border-color); padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .nav-btn:hover, .nav-btn.active { background: var(--accent-blue); border-color: var(--accent-blue); }
+
+        /* Main Container Views */
+        .view-container { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .view-container.active { display: block; }
+
+        /* Hub Metrics Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--accent-yellow); margin-top: 0.5rem; }
+
+        /* Avatar Selection Grid */
+        .avatar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .avatar-option { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 12px; padding: 1rem; text-align: center; cursor: pointer; font-size: 2.5rem; transition: all 0.2s; }
+        .avatar-option:hover, .avatar-option.selected { border-color: var(--accent-green); background: #1e293b; transform: scale(1.05); }
+
+        /* Level 1 Script Display */
+        .script-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .script-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 1rem; text-align: center; cursor: pointer; }
+        .script-char { font-size: 2rem; font-weight: bold; color: var(--accent-pink); }
+        .script-sub { font-size: 0.9rem; color: var(--text-dim); margin-top: 0.2rem; }
+
+        /* Level 5 Word Scramble Tiles */
+        .scramble-container { background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); margin-top: 1.5rem; }
+        .tile-drop-zone { min-height: 60px; background: #0f121d; border: 2px dashed var(--border-color); border-radius: 8px; padding: 0.8rem; display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+        .word-tile { background: var(--theme-main, var(--accent-blue)); color: #fff; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; user-select: none; transition: transform 0.1s; }
+        .word-tile:active { transform: scale(0.95); }
+
+        /* Admin Controls */
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; background: var(--card-bg); border-radius: 8px; overflow: hidden; }
+        .admin-table th, .admin-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .admin-table th { background: #111422; color: var(--accent-blue); }
+        .editable-input { background: #0f121d; border: 1px solid var(--border-color); color: #fff; padding: 0.4rem 0.8rem; border-radius: 4px; width: 100%; }
+
+        .btn-action { background: var(--accent-green); color: #fff; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="logo">⚡ LINGO MATE</div>
+        <div class="nav-links">
+            <button class="nav-btn active" onclick="switchView('hubView')">Main Hub</button>
+            <button class="nav-btn" onclick="switchView('arcadeView')">Language Arcade</button>
+            <button class="nav-btn" onclick="switchView('profileView')">Profile & Avatar</button>
+            <button class="nav-btn" onclick="switchView('adminView')">Admin Control</button>
+        </div>
+    </header>
+
+    <!-- 1. MAIN HUB VIEW -->
+    <div id="hubView" class="view-container active">
+        <h2>Welcome Back, Explorer!</h2>
+        <p style="color: var(--text-dim); margin-bottom: 1.5rem;">Track your progress and daily study targets.</p>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div>🔥 Study Streak</div>
+                <div class="stat-value" id="hubStreak">7 Days</div>
+            </div>
+            <div class="stat-card">
+                <div>🎯 Daily Time Goal</div>
+                <div class="stat-value" id="hubGoal">15 / 20 Mins</div>
+            </div>
+            <div class="stat-card">
+                <div>⭐ Total XP</div>
+                <div class="stat-value" id="hubXP">1,450 XP</div>
+            </div>
+        </div>
+
+        <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color);">
+            <h3>Custom Study Target Settings</h3>
+            <div style="display: flex; gap: 1rem; margin-top: 1rem; align-items: center;">
+                <label>Daily Goal (Minutes):</label>
+                <input type="number" id="goalInput" class="editable-input" style="width: 100px;" value="20">
+                <button class="btn-action" onclick="updateGoal()">Save Target</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. LANGUAGE ARCADE VIEW -->
+    <div id="arcadeView" class="view-container">
+        <h2>Language Selection</h2>
+        <div style="display: flex; gap: 1rem; margin: 1rem 0;">
+            <button class="nav-btn" onclick="selectLanguage('fr')">French</button>
+            <button class="nav-btn" onclick="selectLanguage('de')">German</button>
+            <button class="nav-btn" onclick="selectLanguage('ja')">Japanese</button>
+            <button class="nav-btn" onclick="selectLanguage('ko')">Korean</button>
+            <button class="nav-btn" onclick="selectLanguage('zh')">Chinese</button>
+        </div>
+
+        <!-- Level 1 Alphabet / Script Display -->
+        <div id="level1Container" style="margin-top: 2rem;">
+            <h3 id="langTitle">Japanese Script & Kanji</h3>
+            <div class="script-grid" id="scriptGrid"></div>
+        </div>
+
+        <!-- Level 5 Word Scramble Practice -->
+        <div class="scramble-container">
+            <h3>Level 5: Sentence Builder (Word Scramble)</h3>
+            <p style="color: var(--text-dim); margin-top: 0.5rem;" id="sentencePrompt">Assemble the words in correct grammatical order:</p>
+            
+            <div class="tile-drop-zone" id="assembledZone"></div>
+            <div class="tile-drop-zone" id="availableZone"></div>
+
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn-action" onclick="checkSentence()">Verify Sentence</button>
+                <button class="nav-btn" onclick="toggleHint()">Show Hint</button>
+            </div>
+            <p id="hintBox" style="margin-top: 1rem; color: var(--accent-yellow); display: none;"></p>
+        </div>
+    </div>
+
+    <!-- 3. PROFILE & AVATAR VIEW -->
+    <div id="profileView" class="view-container">
+        <h2>User Profile Settings</h2>
+        <p style="color: var(--text-dim);">Select your character avatar (boys, girls, men, and women representations without text labels).</p>
+
+        <div style="margin-top: 1.5rem;">
+            <h3>Select Profile Avatar</h3>
+            <div class="avatar-grid">
+                <div class="avatar-option" onclick="selectAvatar('👦')">👦</div>
+                <div class="avatar-option" onclick="selectAvatar('👧')">👧</div>
+                <div class="avatar-option" onclick="selectAvatar('👨')">👨</div>
+                <div class="avatar-option" onclick="selectAvatar('👩')">👩</div>
+                <div class="avatar-option" onclick="selectAvatar('🧑')">🧑</div>
+                <div class="avatar-option" onclick="selectAvatar('👱‍♀️')">👱‍♀️</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. ADMIN CONTROL VIEW -->
+    <div id="adminView" class="view-container">
+        <h2>Admin Management Panel</h2>
+        <p style="color: var(--text-dim);">Create user profiles and inline edit course content data.</p>
+
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Language</th>
+                    <th>Level</th>
+                    <th>Target Sentence</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="adminDataBody">
+                <tr>
+                    <td>Japanese</td>
+                    <td>Level 5</td>
+                    <td><input class="editable-input" value="私は毎日日本語を勉強します。"></td>
+                    <td><button class="btn-action">Save Edit</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // INITIAL DATA SCHEMA
+        const appData = {
+            ja: {
+                title: "Japanese (Hiragana, Katakana & Kanji)",
+                script: [
+                    { char: "あ", sub: "a" }, { char: "い", sub: "i" }, { char: "う", sub: "u" },
+                    { char: "日", sub: "Sun / Day (Kanji)" }, { char: "本", sub: "Book / Origin (Kanji)" }, { char: "学", sub: "Study (Kanji)" }
+                ],
+                sentence: { target: ["私", "は", "毎日", "日本語", "を", "勉強します"], hint: "English: I study Japanese every day." }
+            },
+            fr: {
+                title: "French (Alphabet & Diacritics)",
+                script: [
+                    { char: "A", sub: "ah" }, { char: "É", sub: "e-acute" }, { char: "Ç", sub: "c-cedilla" }
+                ],
+                sentence: { target: ["J'apprends", "le", "français", "tous", "les", "jours"], hint: "English: I learn French every day." }
+            }
+        };
+
+        let currentLang = 'ja';
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        function selectLanguage(langKey) {
+            currentLang = langKey;
+            document.body.className = 'theme-' + langKey;
+            renderLanguageData();
+        }
+
+        function renderLanguageData() {
+            const data = appData[currentLang] || appData['ja'];
+            document.getElementById('langTitle').innerText = data.title;
+            
+            const grid = document.getElementById('scriptGrid');
+            grid.innerHTML = '';
+            data.script.forEach(s => {
+                grid.innerHTML += `<div class="script-card"><div class="script-char">${s.char}</div><div class="script-sub">${s.sub}</div></div>`;
+            });
+
+            // Render Scramble
+            const avail = document.getElementById('availableZone');
+            const assembled = document.getElementById('assembledZone');
+            avail.innerHTML = ''; assembled.innerHTML = '';
+            
+            let shuffled = [...data.sentence.target].sort(() => Math.random() - 0.5);
+            shuffled.forEach(w => {
+                avail.innerHTML += `<div class="word-tile" onclick="moveTile(this)">${w}</div>`;
+            });
+            document.getElementById('hintBox').innerText = data.sentence.hint;
+        }
+
+        function moveTile(tile) {
+            const avail = document.getElementById('availableZone');
+            const assembled = document.getElementById('assembledZone');
+            if (tile.parentElement.id === 'availableZone') {
+                assembled.appendChild(tile);
+            } else {
+                avail.appendChild(tile);
+            }
+        }
+
+        function toggleHint() {
+            const box = document.getElementById('hintBox');
+            box.style.display = box.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function selectAvatar(emoji) {
+            alert('Selected profile avatar: ' + emoji);
+        }
+
+        function updateGoal() {
+            const mins = document.getElementById('goalInput').value;
+            document.getElementById('hubGoal').innerText = `0 / ${mins} Mins`;
+            alert('Daily target updated to ' + mins + ' minutes!');
+        }
+
+        // Initialize default view
+        renderLanguageData();
+    </script>
+</body>
+</html>
